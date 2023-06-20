@@ -13,10 +13,10 @@
             "justMyCode": false
         },
         {
-            "name": "tour.py",
+            "name": "current",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/examples/tour.py",
+            "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": false
         },

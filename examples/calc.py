@@ -37,12 +37,16 @@ from __future__ import annotations
 import urwid
 import urwid.raw_display
 import urwid.web_display
+import platform
 
 # use appropriate Screen class
 if urwid.web_display.is_web_request():
     Screen = urwid.web_display.Screen
 else:
     Screen = urwid.raw_display.Screen
+    if platform.system() == 'Windows':
+        import urwid.windows_display
+        Screen = urwid.windows_display.Screen
 
 
 def div_or_none(a,b):

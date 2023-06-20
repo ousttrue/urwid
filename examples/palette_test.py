@@ -26,10 +26,15 @@ in monochrome, 16 color, 88 color, 256 color, and 24-bit (true) color modes.
 
 from __future__ import annotations
 
+import platform
 import re
 
 import urwid
 import urwid.raw_display
+Screen = urwid.raw_display.Screen
+if platform.system() == 'Windows':
+    import urwid.windows_display
+    Screen = urwid.windows_display.Screen
 
 CHART_TRUE="""
 #e50000#e51000#e52000#e53000#e54000#e55000#e56000#e57000#e58000#e59000\
@@ -345,7 +350,7 @@ def main():
             '#ff8', '#806'),
         ]
 
-    screen = urwid.raw_display.Screen()
+    screen = Screen()
     screen.register_palette(palette)
 
     lb = urwid.SimpleListWalker([])
