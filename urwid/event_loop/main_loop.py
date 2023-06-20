@@ -39,7 +39,6 @@ from urwid.util import StoppingContext, is_mouse_event
 from urwid.wimp import PopUpTarget
 
 from .abstract_loop import ExitMainLoop
-from .select_loop import SelectEventLoop
 
 if typing.TYPE_CHECKING:
     from urwid.display_common import BaseScreen
@@ -141,7 +140,12 @@ class MainLoop:
         if not hasattr(screen, 'hook_event_loop') and event_loop is not None:
             raise NotImplementedError(f"screen object passed {screen!r} does not support external event loops")
         if event_loop is None:
-            event_loop = SelectEventLoop()
+            from .select_loop import SelectEventLoop
+            event_loop_class  = SelectEventLoop
+            if platform.system() == 'Windows':
+                from .windows_loop import WindowsEventLoop
+                event_loop_class = WindowsEventLoop
+            event_loop = event_loop_class()
         self.event_loop = event_loop
 
         if hasattr(self.screen, 'signal_handler_setter'):

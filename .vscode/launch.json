@@ -5,12 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
+            "name": "graph.py",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/examples/graph.py",
             "console": "integratedTerminal",
             "justMyCode": false
-        }
+        },
+        {
+            "name": "tour.py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/tour.py",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
     ]
 }

@@ -28,6 +28,8 @@ from __future__ import annotations
 import urwid
 import urwid.raw_display
 import urwid.web_display
+import urwid.windows_display
+import platform
 
 
 def main():
@@ -318,7 +320,10 @@ def main():
     if urwid.web_display.is_web_request():
         screen = urwid.web_display.Screen()
     else:
-        screen = urwid.raw_display.Screen()
+        if platform.system()=="Windows":
+            screen = urwid.windows_display.Screen()
+        else:
+            screen = urwid.raw_display.Screen()
 
     def unhandled(key):
         if key == 'f8':
