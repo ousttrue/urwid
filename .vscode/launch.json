@@ -20,5 +20,16 @@
             "console": "integratedTerminal",
             "justMyCode": false
         },
+        {
+            "name": "win_pudb",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/win_pudb.py",
+            "args": [
+                "${workspaceFolder}/examples/fib.py",
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
     ]
 }

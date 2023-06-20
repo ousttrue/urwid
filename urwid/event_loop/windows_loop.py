@@ -36,6 +36,10 @@ class WindowsEventLoop(EventLoop):
         # raise NotImplementedError()
         pass
 
+    def poll(self, handle):
+        if not win32.ReadConsoleInputW(handle, self.records, 128, self.size):
+            raise Exception("ReadConsoleInput")
+
     def run(self) -> None:
         assert self.watch
         handle, callback = self.watch
@@ -43,8 +47,7 @@ class WindowsEventLoop(EventLoop):
         idle = self.idle
         while True:
             idle()
-            if not win32.ReadConsoleInputW(handle, self.records, 128, self.size):
-                raise Exception("ReadConsoleInput")
+            self.poll(handle)
             if self.size[0] > 0:
                 callback()
 

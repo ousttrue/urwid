@@ -88,6 +88,7 @@ class Screen(urwid.raw_display.Screen):
         except Exception as ex:
             pass
         self.cols_rows = (0, 0)
+        self.hStdin = None
 
     def _start(self, alternate_buffer=True):
         """
@@ -95,14 +96,14 @@ class Screen(urwid.raw_display.Screen):
 
         alternate_buffer -- use alternate screen buffer
         """
-        hStdin = GetStdHandle(STD_INPUT_HANDLE)
-        if hStdin == INVALID_HANDLE_VALUE:
+        self.hStdin = GetStdHandle(STD_INPUT_HANDLE)
+        if self.hStdin == INVALID_HANDLE_VALUE:
             raise Exception("GetStdHandle")
         inMode = (ctypes.wintypes.DWORD * 1)()
-        if not GetConsoleMode(hStdin, inMode):
+        if not GetConsoleMode(self.hStdin, inMode):
             raise Exception("GetConsoleMode")
         if not SetConsoleMode(
-            hStdin,
+            self.hStdin,
             inMode[0]
             | ENABLE_WINDOW_INPUT
             | ENABLE_MOUSE_INPUT
@@ -218,6 +219,46 @@ class Screen(urwid.raw_display.Screen):
         #     fd_list.append(self.gpm_mev.stdout.fileno())
         return fd_list
 
+    def _wait_for_input_ready(self, timeout):
+        ready = None
+        if not self.event_loop:
+            from urwid.event_loop.windows_loop import WindowsEventLoop
+            self.event_loop = WindowsEventLoop()
+        self.event_loop.poll(self.hStdin)
+        return ready
+    
+    def get_input(self, raw_keys: bool = False) -> list[str] | tuple[list[str], list[int]]:
+        assert self._started
+
+        self._wait_for_input_ready(self._next_timeout)
+        keys, raw = self.parse_input(None, None, self.get_available_raw_input())
+
+        # Avoid pegging CPU at 100% when slowly resizing
+        if keys == ['window resize'] and self.prev_input_resize:
+            while True:
+                self._wait_for_input_ready(self.resize_wait)
+                keys, raw2 = self.parse_input(None, None, self.get_available_raw_input())
+                raw += raw2
+                # if not keys:
+                #     keys, raw2 = self._get_input(
+                #         self.resize_wait)
+                #     raw += raw2
+                if keys != ['window resize']:
+                    break
+            if keys[-1:] != ['window resize']:
+                keys.append('window resize')
+
+        if keys == ['window resize']:
+            self.prev_input_resize = 2
+        elif self.prev_input_resize == 2 and not keys:
+            self.prev_input_resize = 1
+        else:
+            self.prev_input_resize = 0
+
+        if raw_keys:
+            return keys, raw
+        return keys
+
     def get_available_raw_input(self):
         """
         Return any currently-available input.  Does not block.
@@ -227,7 +268,7 @@ class Screen(urwid.raw_display.Screen):
         """
         codes = []
 
-        if self.event_loop.records:
+        if self.event_loop and self.event_loop.records:
             for record in self.event_loop.records[0 : self.event_loop.size[0]]:
                 if record.EventType == win32.EventType.KEY_EVENT:
                     e = record.Event.KeyEvent
