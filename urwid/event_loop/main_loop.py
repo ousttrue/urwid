@@ -26,12 +26,13 @@ from __future__ import annotations
 
 import heapq
 import os
+import platform
 import time
 import typing
 import warnings
 from collections.abc import Callable, Iterable
 
-from urwid import raw_display, signals
+from urwid import signals
 from urwid.command_map import REDRAW_SCREEN, command_map
 from urwid.display_common import INPUT_DESCRIPTORS_CHANGED
 from urwid.util import StoppingContext, is_mouse_event
@@ -121,7 +122,12 @@ class MainLoop:
         self.pop_ups = pop_ups  # triggers property setting side-effect
 
         if not screen:
-            screen = raw_display.Screen()
+            from urwid import raw_display
+            screen_class = raw_display.Screen            
+            if platform.system() == 'Windows':
+                from urwid import windows_display
+                screen_class = windows_display.Screen
+            screen = screen_class()
 
         if palette:
             screen.register_palette(palette)
